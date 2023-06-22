@@ -4,6 +4,20 @@ const express = require('express');
 // Create an instance of the Express application
 const app = express();
 
+const mongoose = require('mongoose');
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost/twitter-1', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB:', error);
+  });
+
 // Define a logger that chronicles incoming requests with a timestamp
 const logger = (req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -20,11 +34,14 @@ app.get('/', (req, res) => {
 // GET request handler for retrieving all tweets
 app.get('/tweets', (req, res) => {
     // return all tweets from database or other data source
-    const tweets = [
-        {id: 1, author : 'drewmummy', content : 'first!'},
-        {id: 2, author : 'drewmummy', content : 'I\'m so alone...'}
-    ];
-    res.json(tweets); // return tweets as JSON response
+    Tweet.find()
+        .then(tweets => {
+            res.json(tweets);
+        })
+        .catch(error => {
+            console.error(`Error fetching tweets: ${error}`);
+            res.status(500).json({ error: 'Failed to fetch tweets' });
+        })
 });
 
 // POST req handler for creating a new tweet
@@ -54,6 +71,30 @@ app.delete('/tweets/:id', (req, res) => {
     res.sendStatus(204); // Return a status code 204 (No Content) to indicate successful deletion
   });
 
+  // Define a schema for the tweet
+const tweetSchema = new mongoose.Schema({
+    content: String,
+    author: String,
+    createdAt: { type: Date, default: Date.now }
+  });
+  
+  // Create a Mongoose model based on the schema
+  const Tweet = mongoose.model('Tweet', tweetSchema);
+  
+  // Create a new tweet document
+  const newTweet = new Tweet({
+    content: 'Hello, Twitter!',
+    author: 'drewmummy'
+  });
+  
+  // Save the new tweet to the database
+  newTweet.save()
+    .then(() => {
+      console.log('Tweet saved successfully');
+    })
+    .catch((error) => {
+      console.error('Error saving tweet:', error);
+    });
 
 
 const port = 3000;
