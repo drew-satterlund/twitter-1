@@ -1,3 +1,4 @@
+// import the express app module from "node modules"
 const express = require('express');
 
 // Create an instance of the Express application
@@ -6,7 +7,7 @@ const app = express();
 // Define a logger that chronicles incoming requests with a timestamp
 const logger = (req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next(); // if you don't use this function, the subsequent request handlers won't be routed to.
+    next(); // if you don't use this function, the subsequent "middleware" request handlers won't be routed to.
 }
 
 app.use(logger) // Register, or apply to all routes and requests in "app"
